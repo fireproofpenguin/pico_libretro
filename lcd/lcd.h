@@ -54,6 +54,7 @@ uint8_t lcd_system_init(void);
 void lcd_init(lcd_scan_dir orientation, uint16_t brightness);
 void lcd_clear(COLOR color);
 void lcd_set_window(POINT x_start, POINT y_start, POINT x_end, POINT y_end);
+void lcd_write_buffer(uint8_t *data, uint32_t length);
 void lcd_write_color(COLOR color, uint32_t length);
 void lcd_write_register(uint8_t reg);
 void lcd_write_data(uint8_t data);

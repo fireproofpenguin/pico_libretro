@@ -1,17 +1,5 @@
-/**
- * Copyright (c) 2020 Raspberry Pi (Trading) Ltd.
- *
- * SPDX-License-Identifier: BSD-3-Clause
- */
-
 #include "pico/stdlib.h"
-// #include "lcd/LCD_Driver.h"
-// #include "lcd/DEV_Config.h"
 #include "lcd/lcd.h"
-// #include "LCD_Touch.h"
-// #include "LCD_GUI.h"
-// #include "LCD_Bmp.h"
-// #include "DEV_Config.h"
 
 // Pico W devices use a GPIO on the WIFI chip for the LED,
 // so when building for Pico W, CYW43_WL_GPIO_LED_PIN will be defined
@@ -78,6 +66,12 @@ void pico_set_led(bool led_on)
 #define BRRED 0XFC07
 #define GRAY 0X8430
 
+#define LIGHT_GRAY 0xb596
+#define DARK_GRAY 0x5acb
+
+#define GAMEBOY_WIDTH 160
+#define GAMEBOY_HEIGHT 144
+
 int lcd_test(void)
 {
     lcd_system_init();
@@ -87,17 +81,34 @@ int lcd_test(void)
 
     lcd_clear(BLACK);
 
-    int x_start = 80;
-    int x_end = 239;
-    int y_start = 48;
-    int y_end = 191;
+    int x_offset = (SCREEN_HEIGHT - GAMEBOY_WIDTH) / 2; // screen height because of rotation
+    int x_end = SCREEN_HEIGHT - x_offset - 1;
+
+    int y_offset = (SCREEN_WIDTH - GAMEBOY_HEIGHT) / 2; // screen width because of rotation
+    int y_end = SCREEN_WIDTH - y_offset - 1;
+
+    lcd_set_window(x_offset, y_offset, x_end, y_end);
+
+    COLOR colors[4] = {WHITE, LIGHT_GRAY, DARK_GRAY, BLACK};
+
+    int framebuffer_len = GAMEBOY_HEIGHT * GAMEBOY_WIDTH;
+    uint8_t buf[framebuffer_len * 2];
+    for (uint32_t i = 0; i < framebuffer_len; i++)
+    {
+        int line = i / GAMEBOY_WIDTH;
+        COLOR color = colors[line % 4];
+        buf[i * 2] = color >> 8;
+        buf[i * 2 + 1] = color & 0xFF;
+    }
+
+    lcd_write_buffer(buf, framebuffer_len * 2);
 
     while (1)
     {
-        lcd_clear(BLACK);
-        sleep_ms(2000);
-        lcd_clear(WHITE);
-        sleep_ms(2000);
+        // lcd_write_color(RED, GAMEBOY_WIDTH * GAMEBOY_HEIGHT);
+        // sleep_ms(2000);
+        // lcd_write_color(BLUE, GAMEBOY_WIDTH * GAMEBOY_HEIGHT);
+        // sleep_ms(2000);
     }
 
     return 0;

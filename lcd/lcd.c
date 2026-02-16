@@ -125,8 +125,6 @@ static void lcd_set_gram_scan_way(lcd_scan_dir orientation)
  */
 uint8_t lcd_system_init(void)
 {
-	int array[1024] = {[0 ... 1023] = 5};
-
 	stdio_init_all();
 	gpio_init(LCD_RST_PIN);
 	gpio_set_dir(LCD_RST_PIN, GPIO_OUT);
@@ -149,9 +147,7 @@ uint8_t lcd_system_init(void)
 	gpio_put(LCD_BKL_PIN, 1);
 	gpio_put(SD_CS_PIN, 1);
 	// spi_init(SPI_PORT, 4000000);
-	spi_init(SPI_PORT, 14000000);
-	// spi_init(SPI_PORT, 30000000);
-	// spi_set_format(SPI_PORT, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+	spi_init(SPI_PORT, 60000000);
 	spi_set_format(SPI_PORT, 8, SPI_CPOL_1, SPI_CPHA_1, SPI_MSB_FIRST);
 	gpio_set_function(LCD_CLK_PIN, GPIO_FUNC_SPI);
 	gpio_set_function(LCD_MOSI_PIN, GPIO_FUNC_SPI);
@@ -219,12 +215,12 @@ void lcd_set_window(POINT x_start, POINT y_start, POINT x_end, POINT y_end)
 /**
  * Stream raw pixel data to current window
  */
-void lcd_write_buffer(uint8_t data, uint32_t length)
+void lcd_write_buffer(uint8_t *data, uint32_t length)
 {
 	gpio_put(LCD_DC_PIN, 1);
 	gpio_put(LCD_CS_PIN, 0);
 
-	spi_write_blocking(spi1, &data, length);
+	spi_write_blocking(spi1, data, length);
 
 	gpio_put(LCD_CS_PIN, 1);
 }
@@ -238,14 +234,14 @@ void lcd_write_color(COLOR color, uint32_t length)
 	gpio_put(LCD_DC_PIN, 1);
 	gpio_put(LCD_CS_PIN, 0);
 
-	uint32_t i;
-	for (i = 0; i < length; i++)
+	uint8_t buf[length * 2];
+	for (uint32_t i = 0; i < length; i++)
 	{
-		uint8_t high = color >> 8;
-		uint8_t low = color & 0xFF;
-		spi_write_blocking(spi1, &high, 1);
-		spi_write_blocking(spi1, &low, 1);
+		buf[i * 2] = color >> 8;
+		buf[i * 2 + 1] = color & 0xFF;
 	}
+
+	spi_write_blocking(spi1, buf, length * 2);
 
 	gpio_put(LCD_CS_PIN, 1);
 }
