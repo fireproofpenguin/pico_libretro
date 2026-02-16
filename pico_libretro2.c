@@ -5,6 +5,12 @@
  */
 
 #include "pico/stdlib.h"
+#include "lcd/LCD_Driver.h"
+#include "lcd/DEV_Config.h"
+// #include "LCD_Touch.h"
+// #include "LCD_GUI.h"
+// #include "LCD_Bmp.h"
+// #include "DEV_Config.h"
 
 // Pico W devices use a GPIO on the WIFI chip for the LED,
 // so when building for Pico W, CYW43_WL_GPIO_LED_PIN will be defined
@@ -43,15 +49,65 @@ void pico_set_led(bool led_on)
 #endif
 }
 
-int main()
+// int main()
+// {
+//     int rc = pico_led_init();
+//     hard_assert(rc == PICO_OK);
+//     while (true)
+//     {
+//         pico_set_led(true);
+//         sleep_ms(LED_DELAY_MS);
+//         pico_set_led(false);
+//         sleep_ms(LED_DELAY_MS);
+//     }
+// }
+
+#define WHITE 0xFFFF
+#define BLACK 0x0000
+#define BLUE 0x001F
+#define BRED 0XF81F
+#define GRED 0XFFE0
+#define GBLUE 0X07FF
+#define RED 0xF800
+#define MAGENTA 0xF81F
+#define GREEN 0x07E0
+#define CYAN 0x7FFF
+#define YELLOW 0xFFE0
+#define BROWN 0XBC40
+#define BRRED 0XFC07
+#define GRAY 0X8430
+
+int lcd_test(void)
 {
-    int rc = pico_led_init();
-    hard_assert(rc == PICO_OK);
-    while (true)
+    uint8_t counter = 0;
+
+    System_Init();
+    LCD_SCAN_DIR lcd_scan_dir = D2U_L2R;
+    LCD_Init(lcd_scan_dir, 800);
+
+    LCD_Clear(BLACK);
+
+    int x_start = 80;
+    int x_end = 239;
+    int y_start = 48;
+    int y_end = 191;
+
+    while (1)
     {
-        pico_set_led(true);
-        sleep_ms(LED_DELAY_MS);
-        pico_set_led(false);
-        sleep_ms(LED_DELAY_MS);
+        LCD_SetArealColor(x_start, y_start, x_end, y_end, WHITE);
+        Driver_Delay_ms(2000);
+        LCD_SetArealColor(x_start, y_start, x_end, y_end, RED);
+        Driver_Delay_ms(2000);
     }
+
+    return 0;
+}
+
+int main(void)
+{
+    while (1)
+    {
+        lcd_test();
+    }
+    return 0;
 }
