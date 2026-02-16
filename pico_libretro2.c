@@ -5,8 +5,9 @@
  */
 
 #include "pico/stdlib.h"
-#include "lcd/LCD_Driver.h"
-#include "lcd/DEV_Config.h"
+// #include "lcd/LCD_Driver.h"
+// #include "lcd/DEV_Config.h"
+#include "lcd/lcd.h"
 // #include "LCD_Touch.h"
 // #include "LCD_GUI.h"
 // #include "LCD_Bmp.h"
@@ -79,13 +80,12 @@ void pico_set_led(bool led_on)
 
 int lcd_test(void)
 {
-    uint8_t counter = 0;
+    lcd_system_init();
 
-    System_Init();
-    LCD_SCAN_DIR lcd_scan_dir = D2U_L2R;
-    LCD_Init(lcd_scan_dir, 800);
+    lcd_scan_dir orientation = D2U_L2R;
+    lcd_init(orientation, 800);
 
-    LCD_Clear(BLACK);
+    lcd_clear(BLACK);
 
     int x_start = 80;
     int x_end = 239;
@@ -94,10 +94,10 @@ int lcd_test(void)
 
     while (1)
     {
-        LCD_SetArealColor(x_start, y_start, x_end, y_end, WHITE);
-        Driver_Delay_ms(2000);
-        LCD_SetArealColor(x_start, y_start, x_end, y_end, RED);
-        Driver_Delay_ms(2000);
+        lcd_clear(BLACK);
+        sleep_ms(2000);
+        lcd_clear(WHITE);
+        sleep_ms(2000);
     }
 
     return 0;
