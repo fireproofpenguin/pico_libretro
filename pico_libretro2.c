@@ -1,5 +1,6 @@
 #include "pico/stdlib.h"
 #include "lcd/lcd.h"
+#include "lcd/fonts/fonts.h"
 
 // Pico W devices use a GPIO on the WIFI chip for the LED,
 // so when building for Pico W, CYW43_WL_GPIO_LED_PIN will be defined
@@ -89,19 +90,24 @@ int lcd_test(void)
 
     lcd_set_window(x_offset, y_offset, x_end, y_end);
 
-    COLOR colors[4] = {WHITE, LIGHT_GRAY, DARK_GRAY, BLACK};
+    lcd_write_color(WHITE, GAMEBOY_HEIGHT * GAMEBOY_WIDTH);
 
-    int framebuffer_len = GAMEBOY_HEIGHT * GAMEBOY_WIDTH;
-    uint8_t buf[framebuffer_len * 2];
-    for (uint32_t i = 0; i < framebuffer_len; i++)
-    {
-        int line = i / GAMEBOY_WIDTH;
-        COLOR color = colors[line % 4];
-        buf[i * 2] = color >> 8;
-        buf[i * 2 + 1] = color & 0xFF;
-    }
+    lcd_display_string(10, 10, "Hello, Pico!", &Font20, RED, GREEN);
+    lcd_display_string(20, 20, "Yes", &Font20, RED, GREEN);
 
-    lcd_write_buffer(buf, framebuffer_len * 2);
+    // COLOR colors[4] = {WHITE, LIGHT_GRAY, DARK_GRAY, BLACK};
+
+    // int framebuffer_len = GAMEBOY_HEIGHT * GAMEBOY_WIDTH;
+    // uint8_t buf[framebuffer_len * 2];
+    // for (uint32_t i = 0; i < framebuffer_len; i++)
+    // {
+    //     int line = i / GAMEBOY_WIDTH;
+    //     COLOR color = colors[line % 4];
+    //     buf[i * 2] = color >> 8;
+    //     buf[i * 2 + 1] = color & 0xFF;
+    // }
+
+    // lcd_write_buffer(buf, framebuffer_len * 2);
 
     while (1)
     {

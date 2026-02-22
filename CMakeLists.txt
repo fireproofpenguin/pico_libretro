@@ -35,7 +35,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(pico_libretro2 pico_libretro2.c lcd/lcd.c)
+add_executable(pico_libretro2 pico_libretro2.c lcd/lcd.c lcd/fonts/font20.c)
 
 pico_set_program_name(pico_libretro2 "pico_libretro2")
 pico_set_program_version(pico_libretro2 "0.1")

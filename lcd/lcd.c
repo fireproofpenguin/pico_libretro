@@ -269,3 +269,138 @@ void lcd_write_data(uint8_t data)
 	spi_write_blocking(spi1, &data, 1);
 	gpio_put(LCD_CS_PIN, 1);
 }
+
+/**
+ * Write string to display
+ * @param x_start x starting position
+ * @param y_start y starting position
+ * @param label string to display
+ * @param font font to use
+ * @param background color behind label
+ * @param foreground text color
+ */
+void lcd_display_string(POINT x_start, POINT y_start, const char *label, sFONT *font, COLOR background, COLOR foreground)
+{
+	if (x_start > properties.columns || y_start > properties.rows)
+	{
+		return;
+	}
+
+	POINT x = x_start;
+	POINT y = y_start;
+
+	while (*label != '\0')
+	{
+		if ((x + font->Width) > properties.columns)
+		{
+			x = x_start;
+			y += font->Height;
+		}
+
+		if ((y + font->Height) > properties.rows)
+		{
+			x = x_start;
+			y = y_start;
+		}
+
+		lcd_display_character(x, y, *label, font, background, foreground);
+
+		label++;
+		x += font->Width;
+	}
+}
+
+void lcd_display_character(POINT Xpoint, POINT Ypoint, const char Acsii_Char,
+						   sFONT *Font, COLOR Color_Background, COLOR Color_Foreground)
+{
+	POINT Page, Column;
+
+	if (Xpoint > properties.columns || Ypoint > properties.rows)
+	{
+		return;
+	}
+
+	uint32_t Char_Offset = (Acsii_Char - ' ') * Font->Height * (Font->Width / 8 + (Font->Width % 8 ? 1 : 0));
+	const unsigned char *ptr = &Font->table[Char_Offset];
+
+	for (Page = 0; Page < Font->Height; Page++)
+	{
+		for (Column = 0; Column < Font->Width; Column++)
+		{
+
+			// To determine whether the font background color and screen background color is consistent
+			if (FONT_BACKGROUND == Color_Background)
+			{ // this process is to speed up the scan
+				if (*ptr & (0x80 >> (Column % 8)))
+					lcd_draw_point(Xpoint + Column, Ypoint + Page, Color_Foreground, DOT_PIXEL_DFT, DOT_STYLE_DFT);
+			}
+			else
+			{
+				if (*ptr & (0x80 >> (Column % 8)))
+				{
+					lcd_draw_point(Xpoint + Column, Ypoint + Page, Color_Foreground, DOT_PIXEL_DFT, DOT_STYLE_DFT);
+				}
+				else
+				{
+					lcd_draw_point(Xpoint + Column, Ypoint + Page, Color_Background, DOT_PIXEL_DFT, DOT_STYLE_DFT);
+				}
+			}
+			// One pixel is 8 bits
+			if (Column % 8 == 7)
+				ptr++;
+		} /* Write a line */
+		if (Font->Width % 8 != 0)
+			ptr++;
+	} /* Write all */
+}
+
+void lcd_draw_point(POINT Xpoint, POINT Ypoint, COLOR Color, DOT_PIXEL Dot_Pixel, DOT_STYLE DOT_STYLE)
+{
+	if (Xpoint > properties.columns || Ypoint > properties.rows)
+	{
+		return;
+	}
+
+	uint16_t XDir_Num, YDir_Num;
+	if (DOT_STYLE == DOT_STYLE_DFT)
+	{
+		for (XDir_Num = 0; XDir_Num < 2 * Dot_Pixel - 1; XDir_Num++)
+		{
+			for (YDir_Num = 0; YDir_Num < 2 * Dot_Pixel - 1; YDir_Num++)
+			{
+				lcd_draw_pixel(Xpoint + XDir_Num - Dot_Pixel, Ypoint + YDir_Num - Dot_Pixel, Color);
+			}
+		}
+	}
+	else
+	{
+		for (XDir_Num = 0; XDir_Num < Dot_Pixel; XDir_Num++)
+		{
+			for (YDir_Num = 0; YDir_Num < Dot_Pixel; YDir_Num++)
+			{
+				lcd_draw_pixel(Xpoint + XDir_Num - 1, Ypoint + YDir_Num - 1, Color);
+			}
+		}
+	}
+}
+
+void lcd_draw_pixel(POINT x, POINT y, COLOR color)
+{
+	if ((x <= properties.columns) && (y <= properties.rows))
+	{
+		lcd_set_window(x, y, x, y);
+		lcd_set_color(color, 1, 1);
+	}
+}
+
+void lcd_set_color(COLOR color, POINT x, POINT y)
+{
+	int buffer_len = x * y;
+	uint8_t buf[buffer_len * 2];
+	for (uint32_t i = 0; i < buffer_len; i++)
+	{
+		buf[i * 2] = color >> 8;
+		buf[i * 2 + 1] = color & 0xFF;
+	}
+	lcd_write_buffer(buf, (uint32_t)x * (uint32_t)y * 2);
+}
